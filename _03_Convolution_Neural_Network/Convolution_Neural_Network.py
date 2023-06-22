@@ -47,9 +47,9 @@ class ResidualBlock(nn.Module):
 
 
 # ResNet定义
-class ResNet(nn.Module):
+class NeuralNetwork(nn.Module):
     def __init__(self, block, layers, num_classes=10):
-        super(ResNet, self).__init__()
+        super(NeuralNetwork, self).__init__()
         self.in_channels = 16
         self.conv = conv3x3(3, 16)
         self.bn = nn.BatchNorm2d(16)
@@ -95,7 +95,7 @@ def read_data():
     return dataset_train, dataset_val, data_loader_train, data_loader_val
 
 def main():
-    model = ResNet(ResidualBlock, [2, 2, 2]).to(device) # 若有参数则传入参数
+    model = NeuralNetwork(ResidualBlock, [2, 2, 2]).to(device) # 若有参数则传入参数
     current_dir = os.path.dirname(os.path.abspath(__file__))
     parent_dir = os.path.dirname(current_dir)
     model.load_state_dict(torch.load(parent_dir + '/pth/model.pth'))
