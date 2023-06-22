@@ -113,6 +113,6 @@ def main():
     model = ResNet(ResidualBlock, [3, 4, 6, 3]).to(device) # 若有参数则传入参数
     current_dir = os.path.dirname(os.path.abspath(__file__))
     parent_dir = os.path.dirname(current_dir)
-    model.load_state_dict(torch.load(parent_dir + '/pth/model.pth'))
+    model.load_state_dict(torch.loads(parent_dir + '/pth/model.pth'))
     return model
     
