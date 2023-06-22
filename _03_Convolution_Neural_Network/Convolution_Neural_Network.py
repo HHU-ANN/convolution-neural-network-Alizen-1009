@@ -16,31 +16,8 @@ from torch.utils.data import DataLoader
 # 判断是否有GPU
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-num_epochs = 200  # 50轮
-batch_size = 256  # 50步长
-learning_rate = 0.01  # 学习率0.01
-
-#Cifar 数据集是32*32的图片，如若导入自己数据集记得修改图片宽高数值
 img_height = 32
 img_width = 32
-
-# 图像预处理
-transform = transforms.Compose([
-    transforms.Pad(4),
-    transforms.RandomHorizontalFlip(),
-    transforms.RandomCrop(32),
-    transforms.ToTensor()])
-
-def read_data():
-    # 这里可自行修改数据预处理，batch大小也可自行调整
-    # 保持本地训练的数据读取和这里一致
-    dataset_train = torchvision.datasets.CIFAR10(root='../data/exp03', train=True, download=True, transform=torchvision.transforms.ToTensor())
-    dataset_val = torchvision.datasets.CIFAR10(root='../data/exp03', train=False, download=False, transform=torchvision.transforms.ToTensor())
-    data_loader_train = DataLoader(dataset=dataset_train, batch_size=256, shuffle=True)
-    data_loader_val = DataLoader(dataset=dataset_val, batch_size=256, shuffle=False)
-    return dataset_train, dataset_val, data_loader_train, data_loader_val
-
-train_dataset, test_dataset, train_loader, test_loader = read_data()
     
 
 def conv3x3(in_channels, out_channels, kernel_size = 3,stride=1, padding=1):
@@ -122,60 +99,16 @@ class ResNet(nn.Module):
         out = out.view( -1,math.ceil(img_height/32)*math.ceil(img_width/32)*2048)
         return out
 
-#Resnet-50 3-4-6-3 总计(3+4+6+3)*3=48 个conv层 加上开头的两个Conv 一共50层
-model = ResNet(ResidualBlock, [3, 4, 6, 3]).to(device)
 
-# 损失函数
-criterion = nn.CrossEntropyLoss()
-optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+def read_data():
+    # 这里可自行修改数据预处理，batch大小也可自行调整
+    # 保持本地训练的数据读取和这里一致
+    dataset_train = torchvision.datasets.CIFAR10(root='../data/exp03', train=True, download=True, transform=torchvision.transforms.ToTensor())
+    dataset_val = torchvision.datasets.CIFAR10(root='../data/exp03', train=False, download=False, transform=torchvision.transforms.ToTensor())
+    data_loader_train = DataLoader(dataset=dataset_train, batch_size=256, shuffle=True)
+    data_loader_val = DataLoader(dataset=dataset_val, batch_size=256, shuffle=False)
+    return dataset_train, dataset_val, data_loader_train, data_loader_val
 
-
-# 更新学习率
-def update_lr(optimizer, lr):
-    for param_group in optimizer.param_groups:
-        param_group['lr'] = lr
-
-total_step = len(train_loader)
-curr_lr = learning_rate
-for epoch in range(num_epochs):
-    for i, (images, labels) in enumerate(train_loader):
-        images = images.to(device)
-        labels = labels.to(device)
-
-        # Forward pass
-        outputs = model(images)
-        loss = criterion(outputs, labels)
-
-        # Backward and optimize
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
-
-        if (i + 1) % 100 == 0:
-            print("Epoch [{}/{}], Step [{}/{}] Loss: {:.4f}"
-                  .format(epoch + 1, num_epochs, i + 1, total_step, loss.item()))
-
-    # 延迟学习率
-    if (epoch + 1) % 20 == 0:
-        curr_lr /= 3
-        update_lr(optimizer, curr_lr)
-
-# 测试网络模型
-model.eval()
-with torch.no_grad():
-    correct = 0
-    total = 0
-    for images, labels in test_loader:
-        images = images.to(device)
-        labels = labels.to(device)
-        outputs = model(images)
-        _, predicted = torch.max(outputs.data, 1)
-        total += labels.size(0)
-        correct += (predicted == labels).sum().item()
-
-    print('Accuracy of the model on the test images: {} %'.format(100 * correct / total))
-
-//torch.save(model.state_dict(),  'mode.pth')
 def main():
     model = ResNet(ResidualBlock, [3, 4, 6, 3]).to(device) # 若有参数则传入参数
     current_dir = os.path.dirname(os.path.abspath(__file__))
