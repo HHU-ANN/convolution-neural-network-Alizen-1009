@@ -16,8 +16,8 @@ from torch.utils.data import DataLoader
 # 判断是否有GPU
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-num_epochs = 50  # 50轮
-batch_size = 50  # 50步长
+num_epochs = 200  # 50轮
+batch_size = 256  # 50步长
 learning_rate = 0.01  # 学习率0.01
 
 #Cifar 数据集是32*32的图片，如若导入自己数据集记得修改图片宽高数值
@@ -175,7 +175,7 @@ with torch.no_grad():
 
     print('Accuracy of the model on the test images: {} %'.format(100 * correct / total))
 
-torch.save(model.state_dict(),  'mode.pth')
+//torch.save(model.state_dict(),  'mode.pth')
 def main():
     model = ResNet(ResidualBlock, [3, 4, 6, 3]).to(device) # 若有参数则传入参数
     current_dir = os.path.dirname(os.path.abspath(__file__))
